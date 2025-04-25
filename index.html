@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ <title>Exchange Simulator</title>
+ <style>
+  body {
+   font-family: Arial, sans-serif;
+   background-image: url("https://i.ibb.co/Nb8wWNh/IMG-6779.jpg");
+   background-size: cover;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   height: 100vh;
+   margin: 0;
+   overflow: hidden;
+  }
+  .container {
+   text-align: center;
+   background: white;
+   padding: 20px;
+   border-radius: 5px;
+   box-shadow: 0 0 10px rgba(0,0,0,0.1);
+   width: 73%;
+  }
+  h1 {
+   font-size: 2em;
+   margin: 0;
+  }
+  .price {
+   font-size: 1.5em;
+   color: #333;
+  }
+  .controls {
+   display: flex;
+   justify-content: space-between;
+   margin-top: 15px;
+  }
+  button {
+   padding: 30px;
+   cursor: pointer;
+   width: 130px; 
+  }
+  .status {
+   margin-top: 30px;
+  }
+  .menu-button {
+   position: absolute; 
+   top: 20px;
+   left: 20px;
+   width: 50px;
+   height: 50px; 
+   text-align: center; 
+   border: none;
+   border-radius: 50%;
+   color: white;
+   text-decoration: none;
+   line-height: 50px; 
+   background-image: url("https://w7.pngwing.com/pngs/14/584/png-transparent-arrow-back-before-circle-direction-left-leftside-navigation-next-to-small-arrow-inside-a-circle-icon.png");
+   background-size: cover;
+  }
+ </style>
+</head>
+<body>
+ <a href="https://kelderius.github.io/Main-Menu5/" class="menu-button"></a>
+ <div class="container">
+  <h1 id="marketHeader">Биржа 👨‍💻</h1>
+  <div class="price" id="price">11.91₽</div>
+  <div class="controls">
+   <div>
+  <button id="buyBtn">Купить акцию</button>
+  <button id="buy100Btn" style="margin-top: 10px;">Купить 100 акций</button>
+  <button id="buyAllBtn" style="margin-top: 10px;">Купить максимум</button>
+   </div>
+   <div>
+  <button id="sellBtn">Продать акцию</button>
+  <button id="sell100Btn" style="margin-top: 10px;">Продать 100 акций</button>
+  <button id="sellAllBtn" style="margin-top: 10px;">Продать максимум</button>
+   </div>
+  </div>
+  <div class="status" id="status">
+   У вас акций: <span id="shares">0</span><br>
+   Баланс: <span id="balance">100.00₽</span>
+  </div>
+ </div>
+
+ <script>
+  let currentPrice = 11.91;
+  const minPrice = 0.06;
+  let shares = 0;
+  let balance = 100.00;
+  let previousPrice = currentPrice;
+
+  // Загрузка данных из localStorage
+  function loadData() {
+   const savedShares = localStorage.getItem('shares');
+   const savedBalance = localStorage.getItem('balance');
+   const savedPrice = localStorage.getItem('currentPrice');
+   if (savedShares !== null) {
+  shares = parseInt(savedShares, 10);
+   }
+   if (savedBalance !== null) {
+  balance = parseFloat(savedBalance);
+   }
+   if (savedPrice !== null) {
+  currentPrice = parseFloat(savedPrice);
+   }
+   updateStatus();
+   updatePriceDisplay();
+  }
+
+  // Сохранение данных в localStorage
+  function saveData() {
+   localStorage.setItem('shares', shares);
+   localStorage.setItem('balance', balance);
+   localStorage.setItem('currentPrice', currentPrice);
+  }
+
+  function updatePrice() {
+   const change = (Math.random() * 10 - 5).toFixed(6); // Диапазон от -5,00 до 5,00
+   currentPrice += parseFloat(change);
+   if (currentPrice < minPrice) {
+  currentPrice = minPrice;
+   }
+   updatePriceDisplay();
+   updateMarketHeader();
+   previousPrice = currentPrice;
+   saveData(); // Сохраняем текущую цену
+  }
+
+  function updatePriceDisplay() {
+   document.getElementById('price').innerText = currentPrice.toFixed(2) + '₽';
+  }
+
+  function updateMarketHeader() {
+   const header = document.getElementById('marketHeader');
+   if (currentPrice > previousPrice) {
+  header.innerText = 'Биржа 📈';
+   } else if (currentPrice < previousPrice) {
+  header.innerText = 'Биржа 📉';
+   } else {
+  header.innerText = 'Биржа 👨‍💻';
+   }
+  }
+
+  function updateStatus() {
+   document.getElementById('shares').innerText = shares;
+   document.getElementById('balance').innerText = balance.toFixed(2) + '₽';
+   saveData(); // Сохраняем данные после каждого изменения
+  }
+
+  document.getElementById('buyBtn').onclick = function() {
+   if (balance >= currentPrice) {
+  shares++;
+  balance -= currentPrice;
+  updateStatus();
+   } else {
+  alert('Недостаточно денег для покупки акции.');
+   }
+  };
+
+  document.getElementById('sellBtn').onclick = function() {
+   if (shares > 0) {
+  shares--;
+  balance += currentPrice;
+  updateStatus();
+   } else {
+  alert('У вас нет акций для продажи.');
+   }
+  };
+
+  document.getElementById('buy100Btn').onclick = function() {
+   if (balance >= currentPrice * 100) {
+  shares += 100;
+  balance -= currentPrice * 100;
+  updateStatus();
+   } else {
+  alert('Недостаточно денег для покупки 100 акций.');
+   }
+  };
+
+  document.getElementById('sell100Btn').onclick = function() {
+   if (shares >= 100) {
+  shares -= 100;
+  balance += currentPrice * 100;
+  updateStatus();
+   } else {
+  alert('Недостаточно акций для продажи.');
+   }
+  };
+  
+  document.getElementById('buyAllBtn').onclick = function() {
+   const maxShares = Math.floor(balance / currentPrice);
+   if (maxShares > 0) {
+  shares += maxShares;
+  balance -= currentPrice * maxShares;
+  updateStatus();
+   } else {
+  alert('Недостаточно денег для покупки акций.');
+   }
+  };
+
+  document.getElementById('sellAllBtn').onclick = function() {
+   if (shares > 0) {
+  balance += currentPrice * shares;
+  shares = 0;
+  updateStatus();
+   } else {
+  alert('У вас нет акций для продажи.');
+   }
+  };
+
+  // Загрузка данных при загрузке страницы
+  window.onload = function() {
+   loadData();
+   setInterval(updatePrice, 10000);
+  };
+ </script>
+</body>
+</html>
